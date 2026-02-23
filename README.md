@@ -47,16 +47,16 @@ The system integrates:
 
 # System Architecture
 
-iOS App (SwiftUI)
-↓
+- iOS App (SwiftUI)
+      ↓
 FastAPI Backend (Python)
-↓
+      ↓
 Face Detection (OpenCV)
-↓
+      ↓
 Embedding Generation (MobileNetV2)
-↓
+      ↓
 Embedding Matching (Cosine Similarity)
-↓
+      ↓
 Firebase Firestore (Database)
 ---
 
@@ -71,7 +71,7 @@ Firebase Firestore (Database)
 
 ```bash
 face_embeddings.pkl
-
+```
 # Recognition Workflow
 
 1. Capture image from camera
