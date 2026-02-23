@@ -1,0 +1,18 @@
+Core libraries
+
+opencv-python-headless
+numpy
+scikit-learn  
+tensorflow
+keras
+firebase-admin
+
+Libraries for image processing in TensorFlow/Keras
+
+Pillow
+
+# API Framework
+fastapi
+uvicorn[standard]
+python-multipart
+pyngrok
