@@ -1,11 +1,3 @@
----
-title: FaceAttend
-emoji: 📸
-colorFrom: green
-colorTo: purple
-sdk: docker
-pinned: false
----
 
 # Facial Recognition Attendance System
 
@@ -139,16 +131,6 @@ Open `http://localhost:8000` in your browser.
 
 ---
 
-## Deployment (Hugging Face Spaces)
-
-1. Create a new Space with **Docker** SDK
-2. Add your Firebase credentials as a Secret:
-   - Name: `FIREBASE_KEY_JSON`
-   - Value: contents of `serviceAccountKey.json`
-3. Push all files except `serviceAccountKey.json`
-4. Upload `.caffemodel` using Git LFS
-
----
 
 ## Results
 
