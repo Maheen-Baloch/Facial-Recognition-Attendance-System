@@ -1,0 +1,815 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>FaceAttend</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=JetBrains+Mono:wght@300;400;500&display=swap" rel="stylesheet"/>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#07080d;
+  --s1:#0e0f17;
+  --s2:#13141e;
+  --s3:#191a26;
+  --bd:#ffffff0c;
+  --bd2:#ffffff18;
+  --bd3:#ffffff28;
+  --acc:#3dff9e;
+  --acc-dim:#3dff9e22;
+  --acc2:#7c6bf5;
+  --acc3:#ff5f6b;
+  --warn:#ffb640;
+  --txt:#e8e8f0;
+  --txt2:#8888a8;
+  --txt3:#44445a;
+  --r:12px;
+  --r2:8px;
+  --fh:'Syne',sans-serif;
+  --fm:'JetBrains Mono',monospace;
+  --sh:0 12px 48px #00000066;
+}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--txt);font-family:var(--fm);min-height:100vh;overflow-x:hidden}
+
+/* grid bg */
+body::before{content:'';position:fixed;inset:0;
+  background-image:linear-gradient(var(--bd) 1px,transparent 1px),linear-gradient(90deg,var(--bd) 1px,transparent 1px);
+  background-size:48px 48px;pointer-events:none;z-index:0}
+
+/* glow blobs */
+.blob1,.blob2{position:fixed;border-radius:50%;filter:blur(120px);pointer-events:none;z-index:0;opacity:.18}
+.blob1{width:600px;height:600px;background:var(--acc2);top:-200px;right:-100px}
+.blob2{width:500px;height:500px;background:var(--acc);bottom:-150px;left:-100px}
+
+.page{position:relative;z-index:1;max-width:1060px;margin:0 auto;padding:0 20px 80px}
+
+/* ── HEADER ── */
+header{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:28px 0 36px;border-bottom:1px solid var(--bd2);margin-bottom:40px
+}
+.logo{display:flex;align-items:center;gap:12px}
+.logo-mark{
+  width:38px;height:38px;background:var(--acc);border-radius:9px;
+  display:grid;place-items:center;
+  box-shadow:0 0 24px #3dff9e44
+}
+.logo-mark svg{width:20px;height:20px;stroke:#07080d;fill:none;stroke-width:2.5;stroke-linecap:round}
+.logo-name{font-family:var(--fh);font-size:1.35rem;font-weight:800;letter-spacing:-.03em}
+.logo-name em{font-style:normal;color:var(--acc)}
+.status-pill{
+  display:flex;align-items:center;gap:7px;
+  background:var(--s1);border:1px solid var(--bd2);
+  border-radius:100px;padding:6px 14px;font-size:.72rem;
+  letter-spacing:.06em;color:var(--txt2)
+}
+.dot{width:7px;height:7px;border-radius:50%;background:var(--txt3);transition:background .3s,box-shadow .3s;flex-shrink:0}
+.dot.on{background:var(--acc);box-shadow:0 0 7px var(--acc)}
+.dot.off{background:var(--acc3)}
+
+/* ── TABS ── */
+.tabs{
+  display:grid;grid-template-columns:repeat(4,1fr);gap:3px;
+  background:var(--s1);border:1px solid var(--bd);
+  border-radius:var(--r);padding:4px;margin-bottom:36px
+}
+.tab{
+  padding:10px 8px;font-family:var(--fh);font-weight:700;
+  font-size:.75rem;letter-spacing:.05em;text-transform:uppercase;
+  border:none;background:transparent;color:var(--txt2);
+  border-radius:calc(var(--r) - 2px);cursor:pointer;
+  transition:all .2s;white-space:nowrap
+}
+.tab:hover{color:var(--txt);background:var(--s2)}
+.tab.active{background:var(--acc);color:#07080d;box-shadow:0 0 16px #3dff9e33}
+@media(max-width:520px){.tabs{grid-template-columns:1fr 1fr}.tab{font-size:.68rem}}
+
+/* ── PANELS ── */
+.panel{display:none;animation:up .28s ease}
+.panel.active{display:block}
+@keyframes up{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+
+/* ── SECTION ── */
+.sh{font-family:var(--fh);font-size:1.5rem;font-weight:800;letter-spacing:-.03em;margin-bottom:4px}
+.ss{color:var(--txt2);font-size:.81rem;margin-bottom:28px;line-height:1.6}
+
+/* ── CARD ── */
+.card{
+  background:var(--s1);border:1px solid var(--bd);
+  border-radius:var(--r);padding:24px;margin-bottom:16px;
+  transition:border-color .2s
+}
+.card:hover{border-color:var(--bd2)}
+.ct{
+  font-family:var(--fh);font-weight:700;font-size:.9rem;
+  margin-bottom:16px;display:flex;align-items:center;gap:8px
+}
+.ct-dot{width:7px;height:7px;border-radius:50%;background:var(--acc);flex-shrink:0}
+
+/* ── FORM ── */
+.field{margin-bottom:16px}
+label{
+  display:block;font-size:.7rem;letter-spacing:.09em;
+  text-transform:uppercase;color:var(--txt2);margin-bottom:6px
+}
+input[type=text],input[type=date]{
+  width:100%;background:var(--s2);border:1px solid var(--bd2);
+  border-radius:var(--r2);color:var(--txt);
+  font-family:var(--fm);font-size:.88rem;padding:10px 13px;
+  outline:none;transition:border-color .2s,box-shadow .2s
+}
+input:focus{border-color:var(--acc);box-shadow:0 0 0 3px #3dff9e12}
+input[type=date]::-webkit-calendar-picker-indicator{filter:invert(.4)}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+@media(max-width:500px){.row2{grid-template-columns:1fr}}
+
+/* ── BUTTONS ── */
+.btn{
+  display:inline-flex;align-items:center;gap:7px;
+  font-family:var(--fh);font-weight:700;font-size:.78rem;
+  letter-spacing:.05em;text-transform:uppercase;
+  padding:11px 22px;border:none;border-radius:var(--r2);
+  cursor:pointer;transition:all .18s;flex-shrink:0
+}
+.btn-p{background:var(--acc);color:#07080d;box-shadow:0 4px 18px #3dff9e22}
+.btn-p:hover{background:#5fffb0;box-shadow:0 4px 28px #3dff9e44}
+.btn-p:active{transform:scale(.97)}
+.btn-s{background:var(--s2);color:var(--txt);border:1px solid var(--bd2)}
+.btn-s:hover{border-color:var(--acc);color:var(--acc)}
+.btn-d{background:transparent;color:var(--acc3);border:1px solid #ff5f6b22}
+.btn-d:hover{background:#ff5f6b12}
+.btn:disabled{opacity:.35;pointer-events:none}
+.btn-w{width:100%;justify-content:center}
+.btn-sm{padding:8px 16px;font-size:.72rem}
+
+/* ── DROP ZONE ── */
+.drop{
+  border:2px dashed var(--bd2);border-radius:var(--r);
+  padding:32px 20px;text-align:center;cursor:pointer;
+  transition:all .2s;position:relative
+}
+.drop:hover,.drop.over{border-color:var(--acc);background:var(--acc-dim)}
+.drop input[type=file]{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%}
+.drop-ico{font-size:1.8rem;margin-bottom:8px;display:block;transition:filter .2s}
+.drop:hover .drop-ico,.drop.over .drop-ico{filter:drop-shadow(0 0 6px var(--acc))}
+.drop-lbl{color:var(--txt2);font-size:.8rem;line-height:1.6}
+.drop-lbl strong{color:var(--acc)}
+
+/* single preview */
+.prev1{
+  display:none;align-items:center;gap:11px;
+  background:var(--s2);border-radius:var(--r2);
+  padding:9px 13px;margin-top:12px
+}
+.prev1.v{display:flex}
+.prev1 img{width:44px;height:44px;object-fit:cover;border-radius:6px;border:1px solid var(--bd)}
+.pinfo{flex:1;min-width:0}
+.pname{font-size:.8rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.psize{font-size:.7rem;color:var(--txt2)}
+.prm{background:none;border:none;color:var(--txt3);cursor:pointer;font-size:.9rem;padding:4px;transition:color .2s}
+.prm:hover{color:var(--acc3)}
+
+/* multi preview */
+.mprev{display:flex;flex-wrap:wrap;gap:7px;margin-top:12px}
+.mthumb{
+  width:52px;height:52px;border-radius:6px;overflow:hidden;
+  border:2px solid var(--bd);position:relative;cursor:pointer;
+  transition:border-color .2s
+}
+.mthumb:hover{border-color:var(--acc)}
+.mthumb img{width:100%;height:100%;object-fit:cover}
+.mthumb .mrm{
+  position:absolute;inset:0;background:#0009;
+  display:none;place-items:center;
+  color:#fff;font-size:.85rem
+}
+.mthumb:hover .mrm{display:grid}
+.mcnt{font-size:.77rem;color:var(--txt2);margin-top:7px}
+
+/* ── ALERT ── */
+.alrt{
+  border-radius:var(--r2);padding:11px 14px;
+  font-size:.8rem;line-height:1.5;margin-bottom:14px;
+  display:flex;align-items:flex-start;gap:9px;
+  border:1px solid transparent;animation:up .22s ease
+}
+.alrt-ok{background:#3dff9e0e;border-color:#3dff9e28;color:#3dff9e}
+.alrt-err{background:#ff5f6b0e;border-color:#ff5f6b28;color:#ff8888}
+.alrt-warn{background:#ffb6400e;border-color:#ffb64028;color:#ffcc66}
+.alrt-info{background:#7c6bf50e;border-color:#7c6bf528;color:#9d8fff}
+
+/* ── RESULT BOX ── */
+.res-box{
+  background:var(--s2);border:1px solid var(--bd2);
+  border-radius:var(--r);padding:22px;
+  margin-top:18px;display:none
+}
+.res-box.v{display:block;animation:up .3s ease}
+.res-name{font-family:var(--fh);font-size:1.4rem;font-weight:800;letter-spacing:-.03em;color:var(--acc);margin-bottom:3px}
+.res-meta{color:var(--txt2);font-size:.78rem}
+.sbar{margin-top:13px;background:var(--s1);height:5px;border-radius:3px;overflow:hidden}
+.sfill{height:100%;background:var(--acc);border-radius:3px;width:0;transition:width .6s cubic-bezier(.16,1,.3,1);box-shadow:0 0 8px var(--acc)}
+.slbl{display:flex;justify-content:space-between;font-size:.7rem;color:var(--txt2);margin-top:5px}
+
+/* ── STATS ── */
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:24px}
+@media(max-width:480px){.stats{grid-template-columns:1fr 1fr}}
+.stat{background:var(--s1);border:1px solid var(--bd);border-radius:var(--r);padding:18px}
+.stat-n{font-family:var(--fh);font-size:1.9rem;font-weight:800;letter-spacing:-.04em;color:var(--acc);line-height:1;margin-bottom:3px}
+.stat-l{color:var(--txt2);font-size:.7rem;letter-spacing:.06em;text-transform:uppercase}
+
+/* ── TABLE ── */
+.tbl-w{border-radius:var(--r);overflow:hidden;border:1px solid var(--bd)}
+table{width:100%;border-collapse:collapse}
+thead tr{background:var(--s2)}
+th{
+  text-align:left;padding:11px 15px;
+  font-family:var(--fh);font-weight:700;font-size:.68rem;
+  letter-spacing:.09em;text-transform:uppercase;
+  color:var(--txt2);border-bottom:1px solid var(--bd)
+}
+td{padding:12px 15px;font-size:.81rem;border-bottom:1px solid var(--bd);transition:background .12s}
+tr:last-child td{border-bottom:none}
+tbody tr:hover td{background:var(--s2)}
+.badge{display:inline-block;padding:2px 8px;border-radius:100px;font-size:.68rem}
+.bp{background:#3dff9e12;color:var(--acc);border:1px solid #3dff9e22}
+.tmono{font-family:var(--fm);font-size:.76rem;color:var(--txt2)}
+
+/* ── DATE ROW ── */
+.drow{display:flex;gap:9px;align-items:flex-end;margin-bottom:22px}
+.drow .field{flex:1;margin:0}
+
+/* ── CAMERA ── */
+.cam-box{
+  background:var(--s2);border:1px solid var(--bd);
+  border-radius:var(--r);overflow:hidden;aspect-ratio:4/3;position:relative;
+  max-width:100%
+}
+.cam-box video{width:100%;height:100%;object-fit:cover;display:block}
+.cam-ph{
+  position:absolute;inset:0;display:grid;place-items:center;
+  color:var(--txt3);text-align:center;gap:8px
+}
+.cam-ph span{font-size:2rem;opacity:.3}
+.cam-ph p{font-size:.76rem;color:var(--txt3)}
+.cam-st{
+  position:absolute;bottom:10px;left:50%;transform:translateX(-50%);
+  background:#000b;backdrop-filter:blur(8px);
+  border-radius:100px;padding:5px 14px;font-size:.72rem;
+  pointer-events:none;white-space:nowrap;color:var(--txt2)
+}
+.cam-ctrls{display:flex;gap:8px;justify-content:center;margin-top:12px;flex-wrap:wrap}
+.capcnt{text-align:center;margin-top:8px;font-size:.76rem;color:var(--txt2)}
+
+/* ── GRID LAYOUTS ── */
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+@media(max-width:660px){.g2{grid-template-columns:1fr}}
+
+/* ── SPINNER ── */
+.spin{display:inline-block;width:15px;height:15px;border:2px solid currentColor;border-top-color:transparent;border-radius:50%;animation:spin .7s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* ── LOADING ── */
+.lov{
+  position:fixed;inset:0;background:#07080dcc;
+  display:grid;place-items:center;z-index:999;
+  backdrop-filter:blur(6px);opacity:0;pointer-events:none;transition:opacity .2s
+}
+.lov.v{opacity:1;pointer-events:all}
+.lcard{
+  background:var(--s1);border:1px solid var(--bd2);
+  border-radius:var(--r);padding:28px 44px;text-align:center
+}
+.lcard .spin{width:26px;height:26px;color:var(--acc);margin-bottom:12px;border-width:2.5px}
+.lcard p{color:var(--txt2);font-size:.83rem}
+
+/* ── TOAST ── */
+#tc{position:fixed;bottom:24px;right:24px;display:flex;flex-direction:column;gap:7px;z-index:1000}
+.toast{
+  background:var(--s1);border:1px solid var(--bd2);
+  border-radius:var(--r2);padding:11px 16px;
+  font-size:.8rem;box-shadow:var(--sh);
+  display:flex;align-items:center;gap:9px;
+  max-width:300px;animation:tin .28s ease
+}
+.toast.ok{border-left:3px solid var(--acc)}
+.toast.er{border-left:3px solid var(--acc3)}
+@keyframes tin{from{opacity:0;transform:translateX(18px)}to{opacity:1;transform:none}}
+@keyframes tout{to{opacity:0;transform:translateX(18px)}}
+
+/* ── EMPTY ── */
+.empty{text-align:center;padding:52px 20px;color:var(--txt3)}
+.empty span{font-size:2.2rem;display:block;margin-bottom:10px;opacity:.4}
+.empty p{font-size:.83rem;line-height:1.6}
+</style>
+</head>
+<body>
+<div class="blob1"></div>
+<div class="blob2"></div>
+
+<div class="page">
+
+<!-- HEADER -->
+<header>
+  <div class="logo">
+    <div class="logo-mark">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="3.5"/><path d="M5 20c0-3.9 3.1-7 7-7s7 3.1 7 7"/><path d="M16 4.2c1.3.8 2.2 2.3 2.2 3.8s-.9 3-2.2 3.8"/></svg>
+    </div>
+    <div class="logo-name">Face<em>Attend</em></div>
+  </div>
+  <div class="status-pill">
+    <div class="dot" id="sd"></div>
+    <span id="st">connecting…</span>
+  </div>
+</header>
+
+<!-- TABS -->
+<div class="tabs">
+  <button class="tab active" onclick="go('mark')">📸 Mark</button>
+  <button class="tab" onclick="go('reg')">➕ Register</button>
+  <button class="tab" onclick="go('att')">📋 Attendance</button>
+  <button class="tab" onclick="go('stu')">👥 Students</button>
+</div>
+
+<!-- ═══ MARK ATTENDANCE ═══ -->
+<div class="panel active" id="panel-mark">
+  <div class="sh">Mark Attendance</div>
+  <div class="ss">Upload a photo or snap one from your webcam. The system detects the face, matches it to a registered student, and records attendance.</div>
+
+  <div class="g2">
+    <!-- upload -->
+    <div class="card">
+      <div class="ct"><span class="ct-dot"></span>Upload Photo</div>
+      <div class="drop" id="drop-m" ondragover="drag(event,this)" ondragleave="undrag(this)" ondrop="dropit(event,'fi-m','drop-m','pr-m')">
+        <input type="file" id="fi-m" accept="image/*" onchange="fchg('fi-m','drop-m','pr-m')"/>
+        <span class="drop-ico">🖼️</span>
+        <div class="drop-lbl">Drag & drop or <strong>browse</strong><br/><span style="font-size:.72rem;color:var(--txt3)">JPG · PNG · WEBP</span></div>
+      </div>
+      <div class="prev1" id="pr-m">
+        <img id="th-m" src="" alt=""/>
+        <div class="pinfo"><div class="pname" id="fn-m"></div><div class="psize" id="fs-m"></div></div>
+        <button class="prm" onclick="clrFile('fi-m','drop-m','pr-m','res-m','alrt-m')">✕</button>
+      </div>
+      <div id="alrt-m"></div>
+      <button class="btn btn-p btn-w" style="margin-top:14px" onclick="doMark()">
+        <span class="spin" id="sp-m" style="display:none"></span>⚡ Submit &amp; Mark
+      </button>
+    </div>
+
+    <!-- webcam -->
+    <div class="card">
+      <div class="ct"><span class="ct-dot" style="background:var(--acc2)"></span>Live Webcam</div>
+      <div class="cam-box">
+        <video id="v-m" autoplay playsinline muted style="display:none"></video>
+        <div class="cam-ph" id="ph-m"><span>📷</span><p>Click Start to open camera</p></div>
+        <div class="cam-st" id="cst-m" style="display:none">🟢 Camera active</div>
+      </div>
+      <div id="alrt-cm"></div>
+      <div class="cam-ctrls">
+        <button class="btn btn-s btn-sm" id="b-ms" onclick="startCam('m')">▶ Start</button>
+        <button class="btn btn-p btn-sm" id="b-msp" onclick="snapMark()" disabled>📸 Snap &amp; Mark</button>
+        <button class="btn btn-d btn-sm" id="b-mstp" onclick="stopCam('m')" disabled>■ Stop</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- result -->
+  <div class="res-box" id="res-m">
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:13px">
+      <div id="rav" style="width:42px;height:42px;border-radius:9px;background:var(--acc);display:grid;place-items:center;font-size:1.2rem;flex-shrink:0">😊</div>
+      <div>
+        <div class="res-name" id="rname">—</div>
+        <div class="res-meta" id="rmeta">—</div>
+      </div>
+    </div>
+    <div class="sbar"><div class="sfill" id="sfill"></div></div>
+    <div class="slbl"><span>Confidence</span><span id="sval">—</span></div>
+  </div>
+</div>
+
+<!-- ═══ REGISTER ═══ -->
+<div class="panel" id="panel-reg">
+  <div class="sh">Register Student</div>
+  <div class="ss">Add a new student. Upload multiple photos from different angles for best accuracy, or capture them live from the webcam.</div>
+
+  <div class="g2">
+    <div>
+      <div class="card">
+        <div class="ct"><span class="ct-dot"></span>Student Details</div>
+        <div class="row2">
+          <div class="field"><label>Full Name</label><input type="text" id="rn" placeholder="e.g. Maheen Baloch"/></div>
+          <div class="field"><label>Reg / Roll No.</label><input type="text" id="rr" placeholder="e.g. SP24-BAI-001"/></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="ct">
+          <span class="ct-dot" style="background:var(--acc2)"></span>
+          Upload Photos
+          <span style="font-size:.68rem;color:var(--txt3);margin-left:4px">10+ angles = best accuracy</span>
+        </div>
+        <div class="drop" id="drop-r" ondragover="drag(event,this)" ondragleave="undrag(this)" ondrop="dropmulti(event,'fi-r','drop-r')">
+          <input type="file" id="fi-r" accept="image/*" multiple onchange="mchg()"/>
+          <span class="drop-ico">📁</span>
+          <div class="drop-lbl">Drop photos here or <strong>browse</strong><br/><span style="font-size:.72rem;color:var(--txt3)">Multiple files supported</span></div>
+        </div>
+        <div class="mprev" id="mp-r"></div>
+        <div class="mcnt" id="mc-r"></div>
+        <div id="alrt-r"></div>
+        <button class="btn btn-p btn-w" style="margin-top:14px" onclick="doReg()">
+          <span class="spin" id="sp-r" style="display:none"></span>✨ Register Student
+        </button>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="ct"><span class="ct-dot" style="background:var(--warn)"></span>Webcam Capture</div>
+      <div class="cam-box">
+        <video id="v-r" autoplay playsinline muted style="display:none"></video>
+        <div class="cam-ph" id="ph-r"><span>📷</span><p>Start camera to capture face images</p></div>
+      </div>
+      <div class="capcnt" id="capcnt">0 images captured</div>
+      <div class="cam-ctrls">
+        <button class="btn btn-s btn-sm" id="b-rs" onclick="startCam('r')">▶ Start</button>
+        <button class="btn btn-p btn-sm" id="b-rc" onclick="capReg()" disabled>📸 Capture</button>
+        <button class="btn btn-s btn-sm" id="b-rcl" onclick="clrCaps()" disabled style="font-size:.7rem;padding:8px 12px">🗑 Clear</button>
+        <button class="btn btn-d btn-sm" id="b-rstp" onclick="stopCam('r')" disabled>■ Stop</button>
+      </div>
+      <div id="cap-prev" style="display:flex;flex-wrap:wrap;gap:6px;margin-top:12px"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ ATTENDANCE ═══ -->
+<div class="panel" id="panel-att">
+  <div class="sh">Attendance Records</div>
+  <div class="ss">View and export attendance for any date. Records are pulled live from Firestore.</div>
+
+  <div class="stats">
+    <div class="stat"><div class="stat-n" id="stp">—</div><div class="stat-l">Present</div></div>
+    <div class="stat"><div class="stat-n" id="stt">—</div><div class="stat-l">Enrolled</div></div>
+    <div class="stat"><div class="stat-n" id="stpc">—</div><div class="stat-l">Rate</div></div>
+  </div>
+
+  <div class="drow">
+    <div class="field"><label>Date</label><input type="date" id="adate"/></div>
+    <button class="btn btn-s" onclick="loadAtt()">🔍 Load</button>
+    <button class="btn btn-p" onclick="loadAtt(true)">📥 Export CSV</button>
+  </div>
+
+  <div id="alrt-a"></div>
+  <div id="atbl"></div>
+</div>
+
+<!-- ═══ STUDENTS ═══ -->
+<div class="panel" id="panel-stu">
+  <div class="sh">Registered Students</div>
+  <div class="ss">All students enrolled in the facial recognition system.</div>
+  <div style="display:flex;justify-content:flex-end;margin-bottom:14px">
+    <button class="btn btn-s btn-sm" onclick="loadStu()">🔄 Refresh</button>
+  </div>
+  <div id="alrt-s"></div>
+  <div id="stbl"></div>
+</div>
+
+</div><!-- /page -->
+
+<!-- LOADING -->
+<div class="lov" id="lov"><div class="lcard"><div class="spin"></div><p id="lmsg">Processing…</p></div></div>
+
+<!-- TOAST -->
+<div id="tc"></div>
+
+<script>
+// ── CONFIG ─────────────────────────────────────────────────────────
+const API = window.location.origin;
+
+// ── UTILS ──────────────────────────────────────────────────────────
+const $ = id => document.getElementById(id);
+const fmt = b => b<1024?b+' B':b<1048576?(b/1024).toFixed(1)+' KB':(b/1048576).toFixed(1)+' MB';
+
+function load(msg='Processing…'){$('lmsg').textContent=msg;$('lov').classList.add('v')}
+function unload(){$('lov').classList.remove('v')}
+
+function toast(msg,type='ok'){
+  const t=document.createElement('div');
+  t.className=`toast ${type}`;
+  t.innerHTML=`<span>${type==='ok'?'✅':'❌'}</span>${msg}`;
+  $('tc').appendChild(t);
+  setTimeout(()=>{t.style.animation='tout .28s ease forwards';setTimeout(()=>t.remove(),280)},3200);
+}
+
+function alrt(id,msg,type='err'){
+  if(!msg){$(id).innerHTML='';return}
+  const ic={ok:'✅',err:'❌',warn:'⚠️',info:'ℹ️'};
+  $(id).innerHTML=`<div class="alrt alrt-${type}"><span>${ic[type]}</span>${msg}</div>`;
+}
+
+// ── TABS ──────────────────────────────────────────────────────────
+const TABS=['mark','reg','att','stu'];
+function go(name){
+  document.querySelectorAll('.tab').forEach((t,i)=>t.classList.toggle('active',TABS[i]===name));
+  document.querySelectorAll('.panel').forEach(p=>p.classList.toggle('active',p.id===`panel-${name}`));
+  if(name==='att')loadAtt();
+  if(name==='stu')loadStu();
+}
+
+// ── API STATUS ────────────────────────────────────────────────────
+async function ping(){
+  try{
+    const r=await fetch(`${API}/students`,{signal:AbortSignal.timeout(4000)});
+    if(r.ok){$('sd').className='dot on';$('st').textContent='API online'}else throw 0;
+  }catch{$('sd').className='dot off';$('st').textContent='API offline'}
+}
+ping();setInterval(ping,30000);
+
+// ── FILE DROPS ────────────────────────────────────────────────────
+function drag(e,el){e.preventDefault();el.classList.add('over')}
+function undrag(el){el.classList.remove('over')}
+
+function dropit(e,inp,drop,prev){
+  e.preventDefault();undrag($(drop));
+  const f=e.dataTransfer.files[0];if(!f)return;
+  const dt=new DataTransfer();dt.items.add(f);$(inp).files=dt.files;showPrev(f,prev);
+}
+function dropmulti(e,inp,drop){
+  e.preventDefault();undrag($(drop));
+  const files=[...e.dataTransfer.files];if(!files.length)return;
+  const cur=$(inp).files?[...$(inp).files]:[];
+  const dt=new DataTransfer();
+  [...cur,...files].forEach(f=>dt.items.add(f));
+  $(inp).files=dt.files;renderMP();
+}
+
+function fchg(inp,drop,prev){const f=$(inp).files[0];if(f)showPrev(f,prev)}
+
+function showPrev(file,prevId){
+  const p=$(prevId);p.classList.add('v');
+  const r=new FileReader();
+  r.onload=e=>{const th=$(prevId.replace('pr-','th-'));if(th)th.src=e.target.result};
+  r.readAsDataURL(file);
+  const fn=$(prevId.replace('pr-','fn-'));
+  const fs=$(prevId.replace('pr-','fs-'));
+  if(fn)fn.textContent=file.name;
+  if(fs)fs.textContent=fmt(file.size);
+}
+
+function clrFile(inp,drop,prev,res,alrtId){
+  $(inp).value='';$(prev).classList.remove('v');
+  if(res)$(res).classList.remove('v');
+  if(alrtId)alrt(alrtId,'');
+}
+
+function mchg(){renderMP()}
+
+function renderMP(){
+  const files=$('fi-r').files;
+  const w=$('mp-r');w.innerHTML='';
+  if(!files.length){$('mc-r').textContent='';return}
+  [...files].forEach((f,i)=>{
+    const d=document.createElement('div');d.className='mthumb';
+    const img=document.createElement('img');
+    const rm=document.createElement('div');rm.className='mrm';rm.textContent='✕';
+    rm.onclick=()=>rmFile(i);
+    d.appendChild(img);d.appendChild(rm);
+    const r=new FileReader();r.onload=e=>img.src=e.target.result;r.readAsDataURL(f);
+    w.appendChild(d);
+  });
+  $('mc-r').textContent=`${files.length} photo${files.length>1?'s':''} selected`;
+}
+
+function rmFile(idx){
+  const files=[...$('fi-r').files];files.splice(idx,1);
+  const dt=new DataTransfer();files.forEach(f=>dt.items.add(f));
+  $('fi-r').files=dt.files;renderMP();
+}
+
+// ── MARK ATTENDANCE — UPLOAD ───────────────────────────────────────
+async function doMark(){
+  const file=$('fi-m').files[0];
+  if(!file){alrt('alrt-m','Please select or drop a photo first.','warn');return}
+  alrt('alrt-m','');
+  $('sp-m').style.display='inline-block';
+  load('Detecting face & matching…');
+  const fd=new FormData();fd.append('file',file);
+  try{
+    const r=await fetch(`${API}/mark-attendance`,{method:'POST',body:fd});
+    const d=await r.json();
+    unload();$('sp-m').style.display='none';
+    if(!r.ok){alrt('alrt-m',d.detail||'Server error.','err');return}
+    showResult(d);
+  }catch{
+    unload();$('sp-m').style.display='none';
+    alrt('alrt-m','Cannot reach the API. Is the server running?','err');
+  }
+}
+
+function showResult(d){
+  const box=$('res-m');box.classList.add('v');
+  if(d.recognized){
+    const parts=(d.name||'').split('_');
+    const dname=parts.slice(0,-1).join(' ');
+    const reg=parts[parts.length-1];
+    $('rname').textContent=dname||d.name;
+    $('rmeta').textContent=`Reg: ${reg} · ${d.message}`;
+    $('rav').style.background='var(--acc)';$('rav').textContent='✅';
+    const pct=Math.round((d.score||0)*100);
+    setTimeout(()=>$('sfill').style.width=pct+'%',60);
+    $('sval').textContent=pct+'%';
+    toast(`${dname||d.name} marked present!`,'ok');
+  }else{
+    $('rname').textContent='Not Recognised';
+    $('rmeta').textContent=d.message||'No matching face in database.';
+    $('rav').style.background='var(--acc3)';$('rav').textContent='❓';
+    $('sfill').style.width='0%';
+    $('sval').textContent=`Score: ${((d.score||0)*100).toFixed(1)}%`;
+    toast('Face not recognised','er');
+  }
+}
+
+// ── REGISTER ──────────────────────────────────────────────────────
+async function doReg(){
+  const name=$('rn').value.trim();
+  const regNo=$('rr').value.trim();
+  const upFiles=$('fi-r').files;
+  const camFiles=capBlobs;
+
+  if(!name){alrt('alrt-r','Enter student name.','warn');return}
+  if(!regNo){alrt('alrt-r','Enter registration number.','warn');return}
+  const total=upFiles.length+camFiles.length;
+  if(!total){alrt('alrt-r','Upload at least one photo or capture from webcam.','warn');return}
+  alrt('alrt-r','');
+  $('sp-r').style.display='inline-block';
+  load(`Registering ${name} (${total} image${total>1?'s':''})… please wait`);
+
+  let url,body;
+  if(total===1&&camFiles.length===0){
+    const fd=new FormData();fd.append('file',upFiles[0]);
+    url=`${API}/register-student?name=${encodeURIComponent(name)}&reg_no=${encodeURIComponent(regNo)}`;
+    body=fd;
+  }else{
+    const fd=new FormData();
+    [...upFiles].forEach(f=>fd.append('files',f));
+    camFiles.forEach((b,i)=>fd.append('files',b,`cam_${i}.jpg`));
+    url=`${API}/register-student-batch?name=${encodeURIComponent(name)}&reg_no=${encodeURIComponent(regNo)}`;
+    body=fd;
+  }
+
+  try{
+    const r=await fetch(url,{method:'POST',body});
+    const d=await r.json();
+    unload();$('sp-r').style.display='none';
+    if(!r.ok){alrt('alrt-r',d.detail||'Registration failed.','err');return}
+    const saved=d.saved_count||1;
+    alrt('alrt-r',`✅ ${name} registered with ${saved} image${saved>1?'s':''}!`,'ok');
+    toast(`${name} registered!`,'ok');
+    $('rn').value='';$('rr').value='';$('fi-r').value='';renderMP();clrCaps();
+  }catch{
+    unload();$('sp-r').style.display='none';
+    alrt('alrt-r','Cannot reach the API.','err');
+  }
+}
+
+// ── ATTENDANCE TABLE ───────────────────────────────────────────────
+async function loadAtt(csv=false){
+  const date=$('adate').value||new Date().toISOString().slice(0,10);
+  $('adate').value=date;alrt('alrt-a','');
+  if(!csv)load('Loading attendance…');
+  try{
+    const [ar,sr]=await Promise.all([
+      fetch(`${API}/attendance?date=${date}`),
+      fetch(`${API}/students`)
+    ]);
+    const att=await ar.json();
+    const stu=await sr.json();
+    unload();
+    $('stp').textContent=att.length;
+    $('stt').textContent=stu.length;
+    $('stpc').textContent=stu.length?Math.round(att.length/stu.length*100)+'%':'—';
+    if(csv){exportCSV(att,date);return}
+    if(!att.length){
+      $('atbl').innerHTML=`<div class="empty"><span>📭</span><p>No attendance records for ${date}.</p></div>`;
+      return;
+    }
+    $('atbl').innerHTML=`<div class="tbl-w"><table>
+      <thead><tr><th>Reg No</th><th>Name</th><th>Status</th><th>Time</th></tr></thead>
+      <tbody>${att.map(r=>`<tr>
+        <td>${r.reg_no}</td>
+        <td>${r.name.replace(/_/g,' ')}</td>
+        <td><span class="badge bp">Present</span></td>
+        <td><span class="tmono">${r.time||'—'}</span></td>
+      </tr>`).join('')}</tbody>
+    </table></div>`;
+  }catch{
+    unload();alrt('alrt-a','Failed to load attendance. Is the API running?','err');
+  }
+}
+
+function exportCSV(data,date){
+  const rows=data.map(r=>`${r.reg_no},"${r.name.replace(/_/g,' ')}",${r.time||''}`).join('\n');
+  const b=new Blob(['Reg No,Name,Time\n'+rows],{type:'text/csv'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(b);
+  a.download=`attendance_${date}.csv`;a.click();
+  toast('CSV downloaded!','ok');
+}
+
+$('adate').value=new Date().toISOString().slice(0,10);
+
+// ── STUDENTS TABLE ─────────────────────────────────────────────────
+async function loadStu(){
+  alrt('alrt-s','');load('Loading students…');
+  try{
+    const r=await fetch(`${API}/students`);
+    const d=await r.json();unload();
+    if(!d.length){
+      $('stbl').innerHTML=`<div class="empty"><span>👥</span><p>No students registered yet.<br/>Go to the Register tab to add students.</p></div>`;
+      return;
+    }
+    $('stbl').innerHTML=`<div class="tbl-w"><table>
+      <thead><tr><th>#</th><th>Reg No</th><th>Name</th></tr></thead>
+      <tbody>${d.map((s,i)=>`<tr>
+        <td style="color:var(--txt3);font-size:.73rem">${i+1}</td>
+        <td>${s.reg_no}</td><td>${s.name}</td>
+      </tr>`).join('')}</tbody>
+    </table></div>`;
+  }catch{
+    unload();alrt('alrt-s','Failed to load students.','err');
+  }
+}
+
+// ── WEBCAM ────────────────────────────────────────────────────────
+const streams={m:null,r:null};
+let capBlobs=[];
+
+async function startCam(mode){
+  const vid=$(`v-${mode}`);const ph=$(`ph-${mode}`);
+  try{
+    const s=await navigator.mediaDevices.getUserMedia({video:{facingMode:'user',width:640,height:480}});
+    streams[mode]=s;vid.srcObject=s;vid.style.display='block';ph.style.display='none';
+    if(mode==='m'){
+      $('b-ms').disabled=true;$('b-msp').disabled=false;$('b-mstp').disabled=false;
+      $('cst-m').style.display='block';
+    }else{
+      $('b-rs').disabled=true;$('b-rc').disabled=false;$('b-rstp').disabled=false;
+    }
+  }catch{toast('Camera access denied.','er')}
+}
+
+function stopCam(mode){
+  const vid=$(`v-${mode}`);const ph=$(`ph-${mode}`);
+  if(streams[mode]){streams[mode].getTracks().forEach(t=>t.stop());streams[mode]=null}
+  vid.srcObject=null;vid.style.display='none';ph.style.display='grid';
+  if(mode==='m'){
+    $('b-ms').disabled=false;$('b-msp').disabled=true;$('b-mstp').disabled=true;
+    $('cst-m').style.display='none';
+  }else{
+    $('b-rs').disabled=false;$('b-rc').disabled=true;$('b-rstp').disabled=true;
+  }
+}
+
+function snap(videoId){
+  const v=$(videoId);
+  const c=document.createElement('canvas');
+  c.width=v.videoWidth||640;c.height=v.videoHeight||480;
+  c.getContext('2d').drawImage(v,0,0);return c;
+}
+
+async function snapMark(){
+  if(!streams.m)return;alrt('alrt-cm','');
+  load('Detecting face & matching…');
+  snap('v-m').toBlob(async blob=>{
+    const fd=new FormData();fd.append('file',blob,'snap.jpg');
+    try{
+      const r=await fetch(`${API}/mark-attendance`,{method:'POST',body:fd});
+      const d=await r.json();unload();
+      if(!r.ok){alrt('alrt-cm',d.detail||'Error.','err');return}
+      showResult(d);
+    }catch{unload();alrt('alrt-cm','API unreachable.','err')}
+  },'image/jpeg',0.92);
+}
+
+function capReg(){
+  if(!streams.r)return;
+  snap('v-r').toBlob(blob=>{
+    capBlobs.push(blob);
+    const w=$('cap-prev');
+    const d=document.createElement('div');d.className='mthumb';
+    const img=document.createElement('img');
+    const rm=document.createElement('div');rm.className='mrm';rm.textContent='✕';
+    const idx=capBlobs.length-1;
+    rm.onclick=()=>{capBlobs.splice(idx,1);d.remove();updCap()};
+    d.appendChild(img);d.appendChild(rm);img.src=URL.createObjectURL(blob);
+    w.appendChild(d);updCap();
+  },'image/jpeg',0.92);
+}
+
+function clrCaps(){capBlobs=[];$('cap-prev').innerHTML='';updCap()}
+function updCap(){
+  $('capcnt').textContent=`${capBlobs.length} image${capBlobs.length!==1?'s':''} captured`;
+  $('b-rcl').disabled=capBlobs.length===0;
+}
+</script>
+</body>
+</html>
