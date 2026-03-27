@@ -1,0 +1,18 @@
+# Core ML
+opencv-python-headless
+numpy
+scikit-learn
+tensorflow==2.13.0
+keras-facenet
+Pillow
+
+# Firebase
+firebase-admin
+
+# API
+fastapi
+uvicorn[standard]
+python-multipart
+
+# Local dev only (not needed on HF but harmless)
+python-dotenv
